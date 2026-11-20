@@ -14,7 +14,7 @@ import {
 } from './weather.js';
 import { initForecastFilters, renderExtendedForecast } from './forecast.js';
 import { onMapSectionShown, updateMapUnit } from './map.js';
-import { initHeroParallax, updateHeroCityImage } from './images.js';
+import { initHeroParallax, initMagneticCards, refreshMagneticCards, updateHeroCityImage } from './images.js';
 import { initNavigation, switchSection } from './navigation.js';
 
 const STORAGE_UNIT_KEY = 'aeriq_unit_v4';
@@ -179,6 +179,7 @@ function renderAllViews() {
   if (state.activeSection === 'map') {
     onMapSectionShown(state.city, state.unit);
   }
+  refreshMagneticCards();
 }
 
 function renderHeroPanel() {
@@ -551,6 +552,7 @@ function bootstrap() {
   syncControlLabels();
   initForecastFilters();
   initHeroParallax();
+  initMagneticCards();
   initSearch();
   bindGlobalControls();
 
@@ -563,7 +565,7 @@ function bootstrap() {
     }
   });
 
-  renderFavoritesSection();
+  renderFavoritesSection().then(() => refreshMagneticCards());
   selectCity(state.city);
 }
 

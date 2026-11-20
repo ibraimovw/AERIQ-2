@@ -166,3 +166,105 @@ export function initHeroParallax() {
     bg.style.transform = 'translate3d(0, 0, 0)';
   });
 }
+
+
+export function initMagneticCards() {
+  const SELECTOR = '.panel, .metric-item, .hour-card, .fav-card, .m-day-card';
+  let activeCard = null;
+  let rafId = null;
+  let pendingUpdate = null;
+
+  const canUseMagnetic = () => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return false;
+    if (window.matchMedia('(pointer: coarse)').matches) return false;
+    return window.innerWidth >= 768;
+  };
+
+  const resetCard = (card) => {
+    if (!card) return;
+    card.classList.remove('is-magnet-active');
+    card.style.setProperty('--mag-rx', '0deg');
+    card.style.setProperty('--mag-ry', '0deg');
+    card.style.setProperty('--mag-tx', '0px');
+    card.style.setProperty('--mag-ty', '0px');
+    card.style.setProperty('--mag-glow', '0');
+  };
+
+  const applyFrame = () => {
+    rafId = null;
+    if (!pendingUpdate || !activeCard) return;
+    const { card, rx, ry, tx, ty, gx, gy } = pendingUpdate;
+    card.classList.add('is-magnet-active', 'magnetic-card');
+    card.style.setProperty('--mag-rx', `${rx.toFixed(2)}deg`);
+    card.style.setProperty('--mag-ry', `${ry.toFixed(2)}deg`);
+    card.style.setProperty('--mag-tx', `${tx.toFixed(1)}px`);
+    card.style.setProperty('--mag-ty', `${ty.toFixed(1)}px`);
+    card.style.setProperty('--mag-gx', `${gx.toFixed(1)}%`);
+    card.style.setProperty('--mag-gy', `${gy.toFixed(1)}%`);
+    card.style.setProperty('--mag-glow', '1');
+  };
+
+  document.querySelectorAll(SELECTOR).forEach((el) => el.classList.add('magnetic-card'));
+
+  document.addEventListener('pointermove', (e) => {
+    if (!canUseMagnetic()) {
+      if (activeCard) {
+        resetCard(activeCard);
+        activeCard = null;
+      }
+      return;
+    }
+
+    const card = e.target.closest(SELECTOR);
+    if (!card) {
+      if (activeCard) {
+        resetCard(activeCard);
+        activeCard = null;
+      }
+      return;
+    }
+
+    if (activeCard && activeCard !== card) {
+      resetCard(activeCard);
+    }
+    activeCard = card;
+
+    const rect = card.getBoundingClientRect();
+    if (!rect.width || !rect.height) return;
+
+    const normX = (e.clientX - rect.left) / rect.width;
+    const normY = (e.clientY - rect.top) / rect.height;
+    const centeredX = normX - 0.5;
+    const centeredY = normY - 0.5;
+
+    const isLargePanel = card.classList.contains('panel');
+    const maxTilt = isLargePanel ? 2.2 : 4.5;
+    const maxPull = isLargePanel ? 3.5 : 5.5;
+
+    pendingUpdate = {
+      card,
+      rx: -centeredY * maxTilt * 2,
+      ry: centeredX * maxTilt * 2,
+      tx: centeredX * maxPull * 2,
+      ty: centeredY * maxPull * 2,
+      gx: normX * 100,
+      gy: normY * 100,
+    };
+
+    if (!rafId) {
+      rafId = requestAnimationFrame(applyFrame);
+    }
+  });
+
+  document.addEventListener('pointerleave', () => {
+    if (activeCard) {
+      resetCard(activeCard);
+      activeCard = null;
+    }
+  });
+}
+
+export function refreshMagneticCards() {
+  const SELECTOR = '.panel, .metric-item, .hour-card, .fav-card, .m-day-card';
+  document.querySelectorAll(SELECTOR).forEach((el) => el.classList.add('magnetic-card'));
+}

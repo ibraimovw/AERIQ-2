@@ -1194,3 +1194,33 @@ button {
 .bottom-nav {
   display: none;
 }
+
+
+/* Magnetic Cards (IBR Tactile Physics) */
+.magnetic-card {
+  position: relative;
+  transform: perspective(900px) rotateX(var(--mag-rx, 0deg)) rotateY(var(--mag-ry, 0deg)) translate3d(var(--mag-tx, 0px), var(--mag-ty, 0px), 0);
+  transition: transform 0.24s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.2s ease, box-shadow 0.24s ease;
+  will-change: transform;
+}
+
+.magnetic-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: radial-gradient(
+    280px circle at var(--mag-gx, 50%) var(--mag-gy, 50%),
+    rgba(255, 69, 102, 0.14),
+    rgba(155, 121, 255, 0.06) 45%,
+    transparent 75%
+  );
+  opacity: var(--mag-glow, 0);
+  transition: opacity 0.25s ease;
+}
+
+.magnetic-card.is-magnet-active {
+  border-color: rgba(255, 69, 102, 0.42);
+  box-shadow: 0 18px 38px rgba(0, 0, 0, 0.52), inset 0 1px 0 rgba(244, 245, 250, 0.1);
+}
