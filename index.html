@@ -1,348 +1,173 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <meta name="description" content="AERIQ — Weather Web Application" />
-  <title>AERIQ</title>
-  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
-  <link rel="stylesheet" href="css/style.css" />
-  <link rel="stylesheet" href="css/responsive.css" />
-  <link rel="stylesheet" href="css/animations.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#08080d">
+  <meta name="description" content="AERIQ — погода, атмосфера и прогнозы городов.">
+  <title>AERIQ — Beyond the forecast</title>
+  <link rel="icon" type="image/svg+xml" href="assets/aeriq-mark.svg">
+  <link rel="apple-touch-icon" href="assets/aeriq-mark.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="stylesheet" href="style.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script defer src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
 <body>
-  <div class="app-shell" id="app">
-    <aside class="sidebar" id="sidebar" aria-label="Primary navigation">
-      <div class="sidebar__top">
-        <a href="#home" class="brand" data-nav="home">
-          <img src="assets/logo.svg" alt="AERIQ" class="brand__icon" />
-          <span class="brand__text">AERIQ</span>
-        </a>
-        <button type="button" class="icon-btn sidebar__toggle" id="sidebarToggleBtn" aria-label="Toggle sidebar" title="Toggle sidebar">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
-        </button>
-      </div>
-
-      <nav class="sidebar__nav" id="desktopNav">
-        <button type="button" class="nav-link is-active" data-section="home">
-          <span class="nav-link__icon" aria-hidden="true">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10.5L12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1v-9.5z"/></svg>
-          </span>
-          <span class="nav-link__label" data-i18n="nav.home">Главная</span>
-        </button>
-        <button type="button" class="nav-link" data-section="forecast">
-          <span class="nav-link__icon" aria-hidden="true">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="3"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
-          </span>
-          <span class="nav-link__label" data-i18n="nav.forecast">Расширенный прогноз</span>
-        </button>
-        <button type="button" class="nav-link" data-section="map">
-          <span class="nav-link__icon" aria-hidden="true">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
-          </span>
-          <span class="nav-link__label" data-i18n="nav.map">Карта</span>
-        </button>
-        <button type="button" class="nav-link" data-section="favorites">
-          <span class="nav-link__icon" aria-hidden="true">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-          </span>
-          <span class="nav-link__label" data-i18n="nav.favorites">Избранное</span>
-        </button>
+  <div class="page-loader" id="pageLoader" aria-label="AERIQ loading">
+    <div class="loader-center">
+      <img src="assets/aeriq-mark.svg" alt="" class="loader-logo">
+      <div class="loader-wordmark">AERIQ<span>.</span></div>
+      <div class="loader-track"><i></i></div>
+      <div class="loader-caption">BEYOND THE FORECAST</div>
+    </div>
+  </div>
+  <div class="ambient ambient-blue"></div><div class="ambient ambient-pink"></div>
+  <div class="app">
+    <aside class="sidebar" id="sidebar">
+      <a class="brand" href="#weather" aria-label="AERIQ — главная">
+        <img src="assets/aeriq-mark.svg" alt="" class="brand-symbol">
+        <span class="brand-copy"><b>AERIQ<span>.</span></b><small>BEYOND THE FORECAST</small></span>
+      </a>
+      <nav class="nav-list" aria-label="Навигация">
+        <a class="nav-link active" href="#weather" data-section="weather"><span class="nav-glyph">◉</span><span data-i18n="navWeather">Погода</span></a>
+        <a class="nav-link" href="#monthly" data-section="monthly"><span class="nav-glyph">▦</span><span data-i18n="navMonthly">16 дней</span></a>
+        <a class="nav-link" href="#map-section" data-section="map-section"><span class="nav-glyph">⌖</span><span data-i18n="navMap">Карта</span></a>
+        <a class="nav-link" href="#air-section" data-section="air-section"><span class="nav-glyph">≋</span><span data-i18n="navAir">Качество воздуха</span></a>
+        <a class="nav-link" href="#cities-section" data-section="cities-section"><span class="nav-glyph">☆</span><span data-i18n="navCities">Мои города</span></a>
       </nav>
-
-      <div class="sidebar__footer">
-        <button type="button" class="control-pill" id="langBtnDesktop" aria-label="Language">
-          <span class="control-pill__tag">LANG</span>
-          <span class="control-pill__val" id="langLabelDesktop">RU</span>
-        </button>
-        <button type="button" class="control-pill" id="unitBtnDesktop" aria-label="Temperature Unit">
-          <span class="control-pill__tag">UNIT</span>
-          <span class="control-pill__val" id="unitLabelDesktop">°C</span>
-        </button>
+      <div class="sidebar-bottom">
+        <div class="sidebar-note"><span class="note-orb"></span><small>WEATHER / ATMOSPHERE / DATA</small><p data-i18n="sidebarLine">Мир меняется.<br>Будь на шаг впереди.</p></div>
+        <div class="sidebar-version">AERIQ WEATHER <span>V3.0</span></div>
       </div>
     </aside>
 
-    <div class="workspace">
+    <main class="main">
       <header class="topbar">
-        <div class="topbar__mobile-brand">
-          <img src="assets/logo.svg" alt="AERIQ" class="brand__icon" />
-          <span class="brand__text">AERIQ</span>
-        </div>
-
-        <div class="search" id="searchContainer">
-          <div class="search__field">
-            <svg class="search__icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-            <input type="search" id="citySearchInput" class="search__input" autocomplete="off" placeholder="Поиск города..." />
-            <span class="search__spinner" id="searchSpinner" hidden></span>
-          </div>
-          <ul class="search__dropdown" id="searchDropdown" role="listbox" hidden></ul>
-        </div>
-
-        <div class="topbar__actions">
-          <button type="button" class="chip-control" id="favoriteToggleBtn" title="В избранное">
-            <span id="favoriteStarIcon">☆</span>
-            <span class="chip-control__text" data-i18n="actions.saveCity">В избранное</span>
-          </button>
-          <button type="button" class="chip-control mobile-only-control" id="langBtnMobile">RU</button>
-          <button type="button" class="chip-control mobile-only-control" id="unitBtnMobile">°C</button>
+        <button class="mobile-brand" id="mobileMenu" aria-label="Открыть меню" aria-expanded="false"><span></span><span></span></button>
+        <form class="search-box" id="searchForm">
+          <span class="search-glass">⌕</span><input id="citySearch" type="search" placeholder="Найти город..." autocomplete="off" aria-label="Найти город">
+          <kbd>↵</kbd><div class="search-results" id="searchResults"></div>
+        </form>
+        <div class="topbar-right">
+          <div class="language-switch"><button class="lang active" data-lang="ru">RU</button><button class="lang" data-lang="en">EN</button></div>
+          <button class="top-icon" id="unitButton" title="°C / °F">°C</button>
+          <button class="top-icon location-button" id="locationButton" title="Моё местоположение">⌖</button>
         </div>
       </header>
 
-      <div class="status-banner" id="statusBanner" role="alert" hidden></div>
+      <section class="page-section" id="weather">
+        <div class="section-kicker"><span class="live-pulse"></span><span data-i18n="liveWeather">ПОГОДА СЕЙЧАС</span><span class="kicker-line"></span><span class="last-updated" id="updatedAt">—</span></div>
+        <section class="panorama-card magnetic" id="panoramaCard">
+          <div class="panorama-image" id="panoramaImage"></div>
+          <div class="panorama-shade"></div>
+          <div class="panorama-top">
+            <div class="city-label"><span class="location-pin">⌖</span><div><div class="city-name" id="cityName">Бишкек</div><div class="city-meta" id="cityMeta">Кыргызстан · местное время</div></div></div>
+            <button class="favorite-button" id="favoriteButton" title="Добавить в избранное">☆ <span data-i18n="saveCity">Сохранить город</span></button>
+          </div>
+          <div class="panorama-weather">
+            <div class="weather-main">
+              <div class="weather-condition" id="condition">Загружаем погоду</div>
+              <div class="temperature-line"><span id="temperature">—</span><sup id="degreeUnit">°C</sup></div>
+              <div class="feels-line"><span data-i18n="feelsLike">Ощущается как</span> <b id="feelsLike">—</b></div>
+              <div class="today-range"><span>↑ <b id="todayHigh">—</b></span><span>↓ <b id="todayLow">—</b></span></div>
+            </div>
+            <div class="weather-visual" id="weatherVisual"><div class="visual-sun"></div><div class="visual-cloud cloud-a"></div><div class="visual-cloud cloud-b"></div><div class="visual-rain"></div></div>
+          </div>
+          <div class="panorama-footer"><span id="cityLocalTime">—</span><span class="panorama-caption" data-i18n="panoramaCaption">АТМОСФЕРА ГОРОДА В РЕАЛЬНОМ ВРЕМЕНИ</span><span class="photo-credit" id="photoCredit"></span></div>
+        </section>
 
-      <main class="main-view" id="mainView">
-        <!-- SECTION 1: HOME -->
-        <section class="section-view is-active" id="section-home" data-view="home">
-          <div class="home-grid">
-            <!-- Hero Weather Panel -->
-            <article class="panel hero-panel" id="heroPanel">
-              <div class="hero-panel__bg" id="heroBg"></div>
-              <div class="hero-panel__overlay"></div>
-              <div class="hero-panel__content">
-                <div class="hero-panel__header">
-                  <div>
-                    <h1 class="hero-panel__city" id="heroCity">—</h1>
-                    <p class="hero-panel__country" id="heroCountry">—</p>
-                  </div>
-                  <div class="hero-panel__time-box">
-                    <span class="hero-panel__time-label" data-i18n="hero.localTime">Местное время</span>
-                    <span class="hero-panel__time" id="heroLocalTime">--:--</span>
-                  </div>
-                </div>
+        <section class="metric-strip" aria-label="Погодные показатели">
+          <article class="metric-card magnetic"><span class="metric-icon strawberry">◌</span><small data-i18n="humidity">Влажность</small><strong id="humidity">—</strong><em data-i18n="relativeHumidity">Относительная</em></article>
+          <article class="metric-card magnetic"><span class="metric-icon blue">≋</span><small data-i18n="wind">Ветер</small><strong id="wind">—</strong><em id="windDirection">—</em></article>
+          <article class="metric-card magnetic"><span class="metric-icon violet">◉</span><small data-i18n="pressure">Давление</small><strong id="pressure">—</strong><em data-i18n="seaLevel">На уровне моря</em></article>
+          <article class="metric-card magnetic"><span class="metric-icon pink">◎</span><small data-i18n="visibility">Видимость</small><strong id="visibility">—</strong><em data-i18n="clearDistance">Дальность обзора</em></article>
+          <article class="metric-card magnetic"><span class="metric-icon yellow">☼</span><small>UV INDEX</small><strong id="uv">—</strong><em id="uvLabel">—</em></article>
+          <article class="metric-card magnetic"><span class="metric-icon orange">◍</span><small data-i18n="dewPoint">Точка росы</small><strong id="dewPoint">—</strong><em data-i18n="comfortIndicator">Показатель комфорта</em></article>
+        </section>
 
-                <div class="hero-panel__center">
-                  <div class="hero-panel__temp-wrap">
-                    <span class="hero-panel__temp" id="heroTemp">--°</span>
-                    <div class="hero-panel__condition-wrap">
-                      <span class="hero-panel__icon" id="heroWeatherIcon" aria-hidden="true"></span>
-                      <span class="hero-panel__condition" id="heroCondition">—</span>
-                    </div>
-                  </div>
-                  <div class="hero-panel__meta">
-                    <span><span data-i18n="hero.feelsLike">Ощущается как</span>: <strong id="heroFeelsLike">--°</strong></span>
-                    <span class="dot-sep">•</span>
-                    <span><span data-i18n="hero.max">Макс</span>: <strong id="heroMaxTemp">--°</strong></span>
-                    <span class="dot-sep">•</span>
-                    <span><span data-i18n="hero.min">Мин</span>: <strong id="heroMinTemp">--°</strong></span>
-                  </div>
-                </div>
+        <section class="sun-card panel magnetic">
+          <div class="sun-info"><span class="sun-icon sunrise-icon">↗</span><div><small data-i18n="sunrise">Рассвет</small><strong id="sunrise">—</strong></div></div>
+          <div class="sun-track"><div class="sun-path"><i id="sunPosition"></i></div><div class="sun-track-labels"><span data-i18n="sunrise">Рассвет</span><span data-i18n="dayLength">Световой день</span><span data-i18n="sunset">Закат</span></div></div>
+          <div class="sun-info right"><span class="sun-icon sunset-icon">↘</span><div><small data-i18n="sunset">Закат</small><strong id="sunset">—</strong></div></div>
+          <div class="sun-extra"><small data-i18n="dayLength">Световой день</small><b id="dayLength">—</b><small data-i18n="goldenHour">Золотой час</small><b id="goldenHour">—</b></div>
+        </section>
 
-                <div class="hero-panel__credit" id="heroImageCredit" hidden></div>
-              </div>
-            </article>
+        <section class="panel forecast-panel">
+          <div class="panel-heading"><div><span class="eyebrow" data-i18n="forecast24">БЛИЖАЙШИЕ 24 ЧАСА</span><h2 data-i18n="hourlyForecast">Почасовой прогноз</h2></div><div class="view-switch"><button class="active" data-hour-view="list">☷ <span data-i18n="list">Список</span></button><button data-hour-view="chart">⌁ <span data-i18n="chart">График</span></button></div></div>
+          <div class="hour-tabs" id="hourTabs">
+            <button class="active" data-hour-mode="overview" data-i18n="overview">Обзор</button><button data-hour-mode="precipitation" data-i18n="precipitation">Осадки</button><button data-hour-mode="wind" data-i18n="wind">Ветер</button><button data-hour-mode="humidity" data-i18n="humidity">Влажность</button><button data-hour-mode="cloud" data-i18n="cloudCover">Облачность</button><button data-hour-mode="pressure" data-i18n="pressure">Давление</button><button data-hour-mode="uv">UV</button><button data-hour-mode="visibility" data-i18n="visibility">Видимость</button><button data-hour-mode="feels" data-i18n="feelsLike">Ощущается как</button>
+          </div>
+          <div class="hourly-list" id="hourlyList"><div class="loading">—</div></div>
+          <div class="hour-chart-wrap hidden" id="hourChartWrap"><canvas id="hourChart"></canvas></div>
+        </section>
 
-            <!-- Weather Insights -->
-            <article class="panel insights-panel">
-              <div class="panel__head">
-                <h2 class="panel__title" data-i18n="sections.insights">Weather Insights</h2>
-                <span class="accent-badge">LIVE</span>
-              </div>
-              <div class="insights-list" id="insightsList"></div>
-            </article>
-
-            <!-- 6 Core Metrics -->
-            <article class="panel metrics-panel">
-              <div class="panel__head">
-                <h2 class="panel__title" data-i18n="sections.metrics">Погодные показатели</h2>
-              </div>
-              <div class="metrics-grid" id="metricsGrid">
-                <div class="metric-item">
-                  <span class="metric-item__label" data-i18n="metrics.humidity">Влажность</span>
-                  <span class="metric-item__value" id="metricHumidity">—</span>
-                </div>
-                <div class="metric-item">
-                  <span class="metric-item__label" data-i18n="metrics.wind">Скорость ветра</span>
-                  <span class="metric-item__value" id="metricWind">—</span>
-                </div>
-                <div class="metric-item">
-                  <span class="metric-item__label" data-i18n="metrics.pressure">Давление</span>
-                  <span class="metric-item__value" id="metricPressure">—</span>
-                </div>
-                <div class="metric-item">
-                  <span class="metric-item__label" data-i18n="metrics.visibility">Видимость</span>
-                  <span class="metric-item__value" id="metricVisibility">—</span>
-                </div>
-                <div class="metric-item">
-                  <span class="metric-item__label" data-i18n="metrics.uv">УФ-индекс</span>
-                  <span class="metric-item__value" id="metricUv">—</span>
-                </div>
-                <div class="metric-item">
-                  <span class="metric-item__label" data-i18n="metrics.dewPoint">Точка росы</span>
-                  <span class="metric-item__value" id="metricDewPoint">—</span>
-                </div>
-              </div>
-            </article>
-
-            <!-- Sunrise & Sunset -->
-            <article class="panel daylight-panel">
-              <div class="panel__head">
-                <h2 class="panel__title" data-i18n="sections.daylight">Восход и закат</h2>
-                <span class="daylight-panel__duration" id="daylightDuration">—</span>
-              </div>
-              <div class="daylight-arc">
-                <svg viewBox="0 0 260 95" class="daylight-svg" aria-hidden="true">
-                  <defs>
-                    <linearGradient id="sunArcGrad" x1="0" y1="0" x2="1" y2="0">
-                      <stop offset="0%" stop-color="#FF4566" />
-                      <stop offset="50%" stop-color="#F17BD2" />
-                      <stop offset="100%" stop-color="#49BAFF" />
-                    </linearGradient>
-                  </defs>
-                  <line x1="14" y1="80" x2="246" y2="80" stroke="rgba(244,245,250,0.14)" stroke-width="1.5" stroke-dasharray="4 4" />
-                  <path d="M 20 80 Q 130 -10 240 80" fill="none" stroke="rgba(244,245,250,0.15)" stroke-width="2.5" />
-                  <path id="daylightProgressPath" d="M 20 80 Q 130 -10 240 80" fill="none" stroke="url(#sunArcGrad)" stroke-width="3" stroke-linecap="round" />
-                  <circle id="sunPositionDot" cx="20" cy="80" r="6" fill="#FF4566" />
-                </svg>
-              </div>
-              <div class="daylight-times">
-                <div>
-                  <span class="daylight-times__label" data-i18n="daylight.sunrise">Восход</span>
-                  <strong class="daylight-times__val" id="sunriseTime">--:--</strong>
-                </div>
-                <div class="daylight-times__right">
-                  <span class="daylight-times__label" data-i18n="daylight.sunset">Закат</span>
-                  <strong class="daylight-times__val" id="sunsetTime">--:--</strong>
-                </div>
-              </div>
-            </article>
-
-            <!-- Hourly 24h Forecast -->
-            <article class="panel hourly-panel">
-              <div class="panel__head">
-                <h2 class="panel__title" data-i18n="sections.hourly">Почасовой прогноз (24 ч)</h2>
-              </div>
-              <div class="hourly-strip" id="hourlyStrip"></div>
-            </article>
-
-            <!-- 8-Day Short Forecast -->
-            <article class="panel short-forecast-panel">
-              <div class="panel__head">
-                <h2 class="panel__title" data-i18n="sections.shortForecast">Прогноз на 8 дней</h2>
-                <button type="button" class="link-btn" data-goto="forecast" data-i18n="actions.open16Days">16 дней →</button>
-              </div>
-              <div class="short-days-list" id="shortDaysList"></div>
-            </article>
-
-            <!-- Map Preview Card -->
-            <article class="panel map-preview-panel">
-              <div class="map-preview-panel__visual">
-                <div class="map-grid-art" aria-hidden="true">
-                  <span class="pulse-pin"></span>
-                </div>
-              </div>
-              <div class="map-preview-panel__body">
-                <h2 class="panel__title" data-i18n="sections.mapPreviewTitle">Погодная карта</h2>
-                <p class="panel__desc" data-i18n="sections.mapPreviewDesc">Интерактивные слои температуры, осадков, ветра и облачности на базе Open-Meteo.</p>
-                <button type="button" class="primary-btn" data-goto="map" data-i18n="actions.openMap">Открыть карту</button>
-              </div>
-            </article>
+        <section class="forecast-lower">
+          <div class="panel week-panel">
+            <div class="panel-heading"><div><span class="eyebrow" data-i18n="nextSeven">СЛЕДУЮЩИЕ 7 ДНЕЙ</span><h2 data-i18n="sevenDay">Прогноз на неделю</h2></div><a href="#monthly" class="inline-link" data-i18n="allForecast">Весь прогноз ↗</a></div>
+            <div class="week-list" id="weekList"></div>
+          </div>
+          <div class="panel comfort-panel">
+            <div class="panel-heading"><div><span class="eyebrow" data-i18n="dailyInsight">AERIQ INSIGHT</span><h2 data-i18n="comfort">Комфорт сегодня</h2></div><span class="insight-spark">✳</span></div>
+            <div class="comfort-score"><strong id="comfortScore">—</strong><span>/ 100</span><b id="comfortLabel">—</b></div>
+            <p id="comfortText" class="comfort-copy">—</p>
+            <div class="clothing-tip"><span>✦</span><div><small data-i18n="whatToWear">ЧТО НАДЕТЬ</small><p id="clothingTip">—</p></div></div>
           </div>
         </section>
 
-        <!-- SECTION 2: 16-DAY EXTENDED FORECAST -->
-        <section class="section-view" id="section-forecast" data-view="forecast" hidden>
-          <div class="panel">
-            <div class="panel__head panel__head--wrap">
-              <div>
-                <h1 class="section-heading" data-i18n="forecast.title">Расширенный прогноз на 16 дней</h1>
-                <p class="panel__desc" id="forecastSubtitle">—</p>
-              </div>
-            </div>
-
-            <div class="filter-bar" id="forecastFilterBar" role="group" aria-label="Forecast parameters"></div>
-
-            <!-- Desktop & Tablet Table -->
-            <div class="table-wrap desktop-tablet-table">
-              <table class="forecast-table" id="forecastTable">
-                <thead id="forecastTableHead"></thead>
-                <tbody id="forecastTableBody"></tbody>
-              </table>
-            </div>
-
-            <!-- Mobile Accordion List -->
-            <div class="mobile-forecast-list" id="mobileForecastList"></div>
+        <section class="panel details-panel">
+          <div class="panel-heading"><div><span class="eyebrow" data-i18n="weatherDetailsKicker">УСЛОВИЯ И ДЕТАЛИ</span><h2 data-i18n="weatherDetails">Погодные показатели</h2></div></div>
+          <div class="detail-grid">
+            <article class="detail-tile"><span class="detail-symbol">💧</span><small data-i18n="precipitationToday">Осадки за день</small><strong id="precipitation">—</strong><em data-i18n="precipitationSum">Суммарно</em></article>
+            <article class="detail-tile"><span class="detail-symbol">☁</span><small data-i18n="cloudCover">Облачность</small><strong id="cloudCover">—</strong><em data-i18n="skyCoverage">Покрытие неба</em></article>
+            <article class="detail-tile"><span class="detail-symbol">🌡</span><small data-i18n="apparentTemp">Ощущаемая температура</small><strong id="apparentTemp">—</strong><em data-i18n="bodyPerception">По ощущениям</em></article>
+            <article class="detail-tile"><span class="detail-symbol">☀</span><small data-i18n="maxUv">Максимальный UV</small><strong id="uvMax">—</strong><em id="uvMaxLabel">—</em></article>
           </div>
         </section>
+        <section class="weather-alert panel" id="weatherAlert"><div class="alert-mark">✳</div><div><span class="eyebrow" data-i18n="weatherInsightKicker">AERIQ WEATHER INSIGHT</span><h3 id="alertTitle">Погодная сводка</h3><p id="alertText">Анализируем ближайшие часы…</p></div><span class="alert-tag" id="alertTag">LIVE</span></section>
+      </section>
 
-        <!-- SECTION 3: INTERACTIVE WEATHER MAP -->
-        <section class="section-view" id="section-map" data-view="map" hidden>
-          <div class="panel map-section-panel">
-            <div class="map-toolbar">
-              <div>
-                <h1 class="section-heading" data-i18n="map.title">Интерактивная погодная карта</h1>
-                <p class="panel__desc" data-i18n="map.gridDisclaimer">Модельная сетка точек Open-Meteo (не спутниковый радар)</p>
-              </div>
-              <div class="layer-switcher" id="mapLayerSwitcher" role="group">
-                <button type="button" class="layer-btn is-active" data-layer="temperature" data-i18n="map.layers.temperature">Температура</button>
-                <button type="button" class="layer-btn" data-layer="precipitation" data-i18n="map.layers.precipitation">Осадки</button>
-                <button type="button" class="layer-btn" data-layer="wind" data-i18n="map.layers.wind">Ветер</button>
-                <button type="button" class="layer-btn" data-layer="cloud" data-i18n="map.layers.cloud">Облачность</button>
-              </div>
-            </div>
+      <section class="page-section panel page-panel" id="monthly">
+        <div class="panel-heading"><div><span class="eyebrow" data-i18n="longRange">LONG RANGE</span><h2 data-i18n="monthlyTitle">Прогноз на 16 дней</h2><p class="section-description" data-i18n="monthlyDescription">Подробный ежедневный прогноз на ближайшие 16 дней.</p></div><span class="pill">16 DAYS</span></div>
+        <div class="forecast-disclaimer" data-i18n="monthlyDisclaimer">Open-Meteo предоставляет ежедневный прогноз максимум на 16 дней. Все даты в этом разделе основаны на прогнозных данных API.</div>
+        <div class="month-grid" id="monthGrid"></div>
+        <div class="panel month-chart-panel"><div class="panel-heading"><div><span class="eyebrow" data-i18n="temperatureTrend">TEMPERATURE TREND</span><h2 data-i18n="monthTemperature">Температурный тренд</h2></div></div><div class="month-chart-wrap"><canvas id="monthChart"></canvas></div></div>
+      </section>
 
-            <div class="map-stage">
-              <div id="leafletMap" class="leaflet-canvas"></div>
-              <div class="map-legend" id="mapLegend"></div>
-              <div class="map-loader" id="mapLoader" hidden>Обновление сетки...</div>
-            </div>
-          </div>
-        </section>
+      <section class="page-section panel page-panel" id="map-section">
+        <div class="panel-heading"><div><span class="eyebrow">AERIQ RADAR</span><h2 data-i18n="weatherMap">Погодная карта</h2><p class="section-description" data-i18n="mapDescription">Интерактивная карта с текущим местоположением города.</p></div><span class="pill">DARK BASEMAP</span></div>
+        <div class="map-toolbar" role="group" aria-label="Слои карты"><button class="map-layer active" data-map-layer="base">BASE</button><button class="map-layer" data-map-layer="radar">RADAR</button><span class="map-status" id="mapStatus">LIVE MAP</span></div><div id="weatherMap" class="weather-map"></div>
+        <p class="map-note" data-i18n="mapNote">Базовая карта CARTO · радар осадков RainViewer (архив до 2 часов; доступность зависит от покрытия).</p>
+      </section>
 
-        <!-- SECTION 4: FAVORITES -->
-        <section class="section-view" id="section-favorites" data-view="favorites" hidden>
-          <div class="panel">
-            <div class="panel__head">
-              <div>
-                <h1 class="section-heading" data-i18n="favorites.title">Избранные города</h1>
-                <p class="panel__desc" id="favoritesCounter">0 / 10</p>
-              </div>
-              <button type="button" class="primary-btn" id="addCurrentFavBtn" data-i18n="favorites.addCurrent">Добавить текущий город</button>
-            </div>
+      <section class="page-section panel page-panel" id="air-section">
+        <div class="panel-heading"><div><span class="eyebrow">AIR QUALITY INDEX</span><h2 data-i18n="airTitle">Качество воздуха</h2><p class="section-description" data-i18n="airDescription">Показатели загрязнения воздуха для выбранного города.</p></div><span class="pill">OPEN-METEO</span></div>
+        <div class="air-overview"><div class="aqi-ring" id="aqiRing"><strong id="aqiValue">—</strong><small>US AQI</small></div><div><div class="aqi-status" id="aqiStatus">—</div><p id="aqiAdvice" class="section-description">—</p></div></div>
+        <div class="air-grid" id="airGrid"></div>
+      </section>
 
-            <div class="favorites-grid" id="favoritesGrid"></div>
-          </div>
-        </section>
-      </main>
+      <section class="page-section panel page-panel" id="cities-section">
+        <div class="panel-heading"><div><span class="eyebrow">YOUR PLACES</span><h2 data-i18n="citiesTitle">Избранные города</h2><p class="section-description" data-i18n="citiesDescription">Сохраняй места и сравнивай погоду.</p></div></div>
+        <div class="city-tools"><h3 data-i18n="savedCities">Сохранённые</h3><button class="small-action" id="compareButton" data-i18n="compare">Сравнить города</button></div>
+        <div class="saved-cities" id="savedCities"></div>
+        <div class="city-tools history-tools"><h3 data-i18n="recentSearches">Недавно просмотренные</h3><button class="text-action" id="clearHistory" data-i18n="clearHistory">Очистить историю</button></div>
+        <div class="history-list" id="historyList"></div>
+        <div class="compare-result" id="compareResult"></div>
+      </section>
 
-      <footer class="app-footer">
-        <div class="app-footer__left">
-          <span class="app-footer__logo">AERIQ</span>
-          <span class="app-footer__desc" data-i18n="footer.desc">Погодный веб-сервис реального времени</span>
-        </div>
-        <div class="app-footer__center">
-          <span>Open-Meteo • OpenStreetMap • Wikimedia Commons</span>
-          <span>v4.0</span>
-        </div>
-        <div class="app-footer__right">CREATED BY IBRAIMOVW AMIR</div>
+      <footer class="site-footer">
+        <div class="footer-main"><div class="footer-brand"><a class="brand footer-logo" href="#weather"><img src="assets/aeriq-mark.svg" alt=""><span><b>AERIQ<span>.</span></b><small>BEYOND THE FORECAST</small></span></a><p data-i18n="footerDescription">Погода, которая помогает чувствовать ритм города и планировать каждый день.</p></div>
+          <div class="footer-column"><b data-i18n="footerExplore">Навигация</b><a href="#weather" data-i18n="navWeather">Погода</a><a href="#monthly" data-i18n="navMonthly">16 дней</a><a href="#map-section" data-i18n="navMap">Карта</a><a href="#air-section" data-i18n="navAir">Качество воздуха</a></div>
+          <div class="footer-column"><b data-i18n="footerTools">Инструменты</b><a href="#cities-section" data-i18n="navCities">Мои города</a><a href="#monthly" data-i18n="footerForecast">Прогноз на 16 дней</a><a href="#map-section" data-i18n="footerRadar">Погодный радар</a></div>
+          <div class="footer-column footer-data"><b data-i18n="footerSources">Источники данных</b><a href="https://open-meteo.com/" target="_blank" rel="noreferrer">Open-Meteo ↗</a><a href="https://www.rainviewer.com/" target="_blank" rel="noreferrer">RainViewer ↗</a><a href="https://www.openstreetmap.org/" target="_blank" rel="noreferrer">OpenStreetMap ↗</a><a href="https://commons.wikimedia.org/" target="_blank" rel="noreferrer">Wikimedia Commons ↗</a></div>
+        </div><div class="footer-bottom"><span>© 2026 AERIQ WEATHER</span><span data-i18n="footerLine">Погода — больше, чем прогноз.</span><span>MADE FOR EVERY DAY <i>✳</i></span></div>
       </footer>
-    </div>
-
-    <!-- Mobile Bottom Navigation -->
-    <nav class="bottom-nav" id="mobileNav" aria-label="Mobile navigation">
-      <button type="button" class="bottom-nav__item is-active" data-section="home">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10.5L12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1v-9.5z"/></svg>
-        <span data-i18n="nav.homeShort">Главная</span>
-      </button>
-      <button type="button" class="bottom-nav__item" data-section="forecast">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="3"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
-        <span data-i18n="nav.forecastShort">Прогноз</span>
-      </button>
-      <button type="button" class="bottom-nav__item" data-section="map">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/></svg>
-        <span data-i18n="nav.mapShort">Карта</span>
-      </button>
-      <button type="button" class="bottom-nav__item" data-section="favorites">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-        <span data-i18n="nav.favoritesShort">Избранное</span>
-      </button>
-    </nav>
+    </main>
   </div>
-
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-  <script type="module" src="js/app.js"></script>
+  <div class="toast" id="toast" role="status"></div>
+  <script src="script.js"></script>
 </body>
 </html>
