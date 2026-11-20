@@ -62,11 +62,12 @@ button {
 
 /* Sidebar (Instagram-inspired Desktop Navigation) */
 .sidebar {
-  position: sticky;
+  position: fixed;
   top: 0;
+  left: 0;
+  bottom: 0;
   height: 100dvh;
   width: 248px;
-  flex-shrink: 0;
   background: var(--panel-primary);
   border-right: 1px solid var(--border-subtle);
   padding: 20px 14px;
@@ -74,7 +75,8 @@ button {
   flex-direction: column;
   justify-content: space-between;
   gap: 20px;
-  z-index: 30;
+  z-index: 40;
+  overflow-y: auto;
   transition: width 0.24s ease;
 }
 
@@ -234,8 +236,16 @@ button {
 .workspace {
   flex: 1;
   min-width: 0;
+  min-height: 100dvh;
+  margin-left: 248px;
   display: flex;
   flex-direction: column;
+  transition: margin-left 0.24s ease;
+}
+
+.app-shell:has(.sidebar.is-collapsed) .workspace,
+.sidebar.is-collapsed + .workspace {
+  margin-left: 76px;
 }
 
 .topbar {
@@ -1028,6 +1038,11 @@ button {
   height: 100%;
   background: #0d1018;
 }
+
+.leaflet-canvas .leaflet-tile-pane {
+  filter: invert(100%) hue-rotate(180deg) brightness(92%) contrast(92%) saturate(85%);
+}
+
 
 .map-legend {
   position: absolute;

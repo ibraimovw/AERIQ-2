@@ -5,6 +5,11 @@
     padding: 16px 10px;
   }
 
+  .workspace,
+  .sidebar.is-collapsed + .workspace {
+    margin-left: 76px;
+  }
+
   .sidebar .brand__text,
   .sidebar .nav-link__label,
   .sidebar .control-pill__tag,
@@ -52,6 +57,11 @@
 @media (max-width: 767px) {
   .sidebar {
     display: none;
+  }
+
+  .workspace,
+  .sidebar.is-collapsed + .workspace {
+    margin-left: 0;
   }
 
   .topbar {
