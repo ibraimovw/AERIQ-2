@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <defs>
+    <linearGradient id="aeriqGrad" x1="6" y1="6" x2="58" y2="58" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FF4566"/>
+      <stop offset="55%" stop-color="#9B79FF"/>
+      <stop offset="100%" stop-color="#49BAFF"/>
+    </linearGradient>
+  </defs>
+  <rect x="4" y="4" width="56" height="56" rx="16" fill="#151823" stroke="url(#aeriqGrad)" stroke-width="3"/>
+  <path d="M20 44L32 18L44 44M24.5 35H39.5" stroke="#F4F5FA" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="45" cy="20" r="4" fill="#FF4566"/>
+</svg>
