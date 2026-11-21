@@ -29,65 +29,65 @@
     --glass-shadow: inset 0 1px rgba(255, 255, 255, 0.07), 0 20px 60px rgba(0, 0, 0, 0.35);
     --cursor-glow-color: rgba(99, 91, 255, 0.13);
 
-    /* Combined DayPhase + Weather atmospheric layers */
-    --phase-orb-1: radial-gradient(54% 46% at 15% 12%, rgba(99, 91, 255, 0.14), transparent 65%);
-    --phase-orb-2: radial-gradient(48% 42% at 86% 18%, rgba(255, 45, 104, 0.09), transparent 65%);
-    --phase-orb-3: radial-gradient(52% 46% at 50% 96%, rgba(184, 61, 255, 0.08), transparent 65%);
-    --weather-wash: linear-gradient(180deg, transparent 0%, transparent 100%);
+    /* Combined DayPhase + Weather atmospheric layers (smooth multi-stop to avoid banding) */
+    --phase-orb-1: radial-gradient(62% 54% at 15% 12%, rgba(99, 91, 255, 0.14) 0%, rgba(99, 91, 255, 0.05) 38%, transparent 72%);
+    --phase-orb-2: radial-gradient(56% 50% at 86% 18%, rgba(255, 45, 104, 0.09) 0%, rgba(255, 45, 104, 0.03) 40%, transparent 72%);
+    --phase-orb-3: radial-gradient(60% 52% at 50% 96%, rgba(184, 61, 255, 0.08) 0%, rgba(184, 61, 255, 0.025) 42%, transparent 74%);
+    --weather-wash: radial-gradient(85% 70% at 50% 0%, transparent 0%, transparent 100%);
   }
 
   /* Time-of-day atmospheric shifts (Dark) */
   body[data-dayphase="dawn"] {
     --bg: #08060b;
-    --phase-orb-1: radial-gradient(56% 50% at 16% 14%, rgba(255, 45, 104, 0.2), transparent 64%);
-    --phase-orb-2: radial-gradient(50% 44% at 84% 18%, rgba(184, 61, 255, 0.16), transparent 62%);
-    --phase-orb-3: radial-gradient(52% 45% at 52% 96%, rgba(62, 140, 255, 0.11), transparent 66%);
+    --phase-orb-1: radial-gradient(62% 54% at 16% 14%, rgba(255, 45, 104, 0.2) 0%, rgba(255, 45, 104, 0.07) 38%, transparent 72%);
+    --phase-orb-2: radial-gradient(56% 50% at 84% 18%, rgba(184, 61, 255, 0.15) 0%, rgba(184, 61, 255, 0.05) 40%, transparent 72%);
+    --phase-orb-3: radial-gradient(60% 52% at 52% 96%, rgba(62, 140, 255, 0.1) 0%, rgba(62, 140, 255, 0.03) 42%, transparent 74%);
   }
 
   body[data-dayphase="day"] {
     --bg: #05070c;
-    --phase-orb-1: radial-gradient(56% 50% at 16% 12%, rgba(62, 140, 255, 0.2), transparent 64%);
-    --phase-orb-2: radial-gradient(50% 44% at 84% 18%, rgba(99, 91, 255, 0.16), transparent 62%);
-    --phase-orb-3: radial-gradient(52% 45% at 52% 96%, rgba(184, 61, 255, 0.1), transparent 66%);
+    --phase-orb-1: radial-gradient(62% 54% at 16% 12%, rgba(62, 140, 255, 0.19) 0%, rgba(62, 140, 255, 0.065) 38%, transparent 72%);
+    --phase-orb-2: radial-gradient(56% 50% at 84% 18%, rgba(99, 91, 255, 0.15) 0%, rgba(99, 91, 255, 0.05) 40%, transparent 72%);
+    --phase-orb-3: radial-gradient(60% 52% at 52% 96%, rgba(184, 61, 255, 0.09) 0%, rgba(184, 61, 255, 0.03) 42%, transparent 74%);
   }
 
   body[data-dayphase="dusk"] {
     --bg: #08050a;
-    --phase-orb-1: radial-gradient(56% 50% at 16% 14%, rgba(255, 45, 104, 0.22), transparent 64%);
-    --phase-orb-2: radial-gradient(50% 44% at 84% 18%, rgba(184, 61, 255, 0.19), transparent 62%);
-    --phase-orb-3: radial-gradient(52% 45% at 52% 96%, rgba(99, 91, 255, 0.12), transparent 66%);
+    --phase-orb-1: radial-gradient(62% 54% at 16% 14%, rgba(255, 45, 104, 0.21) 0%, rgba(255, 45, 104, 0.075) 38%, transparent 72%);
+    --phase-orb-2: radial-gradient(56% 50% at 84% 18%, rgba(184, 61, 255, 0.18) 0%, rgba(184, 61, 255, 0.06) 40%, transparent 72%);
+    --phase-orb-3: radial-gradient(60% 52% at 52% 96%, rgba(99, 91, 255, 0.11) 0%, rgba(99, 91, 255, 0.035) 42%, transparent 74%);
   }
 
   body[data-dayphase="night"] {
     --bg: #050507;
-    --phase-orb-1: radial-gradient(52% 45% at 15% 12%, rgba(99, 91, 255, 0.12), transparent 65%);
-    --phase-orb-2: radial-gradient(48% 42% at 86% 18%, rgba(255, 45, 104, 0.08), transparent 65%);
-    --phase-orb-3: radial-gradient(50% 45% at 50% 96%, rgba(184, 61, 255, 0.07), transparent 65%);
+    --phase-orb-1: radial-gradient(60% 52% at 15% 12%, rgba(99, 91, 255, 0.12) 0%, rgba(99, 91, 255, 0.04) 40%, transparent 72%);
+    --phase-orb-2: radial-gradient(56% 48% at 86% 18%, rgba(255, 45, 104, 0.08) 0%, rgba(255, 45, 104, 0.025) 40%, transparent 72%);
+    --phase-orb-3: radial-gradient(58% 50% at 50% 96%, rgba(184, 61, 255, 0.07) 0%, rgba(184, 61, 255, 0.02) 42%, transparent 74%);
   }
 
   /* Weather-reactive atmosphere overrides (Dark) */
   body[data-weather="rain"] {
-    --weather-wash: linear-gradient(165deg, rgba(62, 140, 255, 0.11) 0%, rgba(15, 23, 42, 0.24) 55%, rgba(99, 91, 255, 0.1) 100%);
-    --glass-bg: linear-gradient(135deg, rgba(62, 140, 255, 0.065), rgba(15, 22, 38, 0.45));
+    --weather-wash: radial-gradient(95% 75% at 50% 10%, rgba(62, 140, 255, 0.11) 0%, rgba(30, 58, 138, 0.05) 48%, transparent 82%);
+    --glass-bg: linear-gradient(145deg, rgba(62, 140, 255, 0.075), rgba(15, 22, 38, 0.42));
   }
 
   body[data-weather="storm"] {
-    --weather-wash: linear-gradient(165deg, rgba(184, 61, 255, 0.14) 0%, rgba(10, 8, 22, 0.35) 55%, rgba(255, 45, 104, 0.1) 100%);
-    --glass-bg: linear-gradient(135deg, rgba(184, 61, 255, 0.075), rgba(14, 12, 26, 0.5));
+    --weather-wash: radial-gradient(95% 75% at 50% 10%, rgba(184, 61, 255, 0.14) 0%, rgba(35, 15, 65, 0.07) 48%, transparent 82%);
+    --glass-bg: linear-gradient(145deg, rgba(184, 61, 255, 0.085), rgba(14, 12, 26, 0.48));
   }
 
   body[data-weather="snow"] {
-    --weather-wash: linear-gradient(165deg, rgba(186, 230, 253, 0.09) 0%, rgba(30, 41, 59, 0.16) 60%, rgba(62, 140, 255, 0.08) 100%);
-    --glass-bg: linear-gradient(135deg, rgba(224, 242, 254, 0.075), rgba(255, 255, 255, 0.025));
+    --weather-wash: radial-gradient(95% 75% at 50% 10%, rgba(186, 230, 253, 0.09) 0%, rgba(62, 140, 255, 0.035) 50%, transparent 82%);
+    --glass-bg: linear-gradient(145deg, rgba(224, 242, 254, 0.08), rgba(255, 255, 255, 0.025));
   }
 
   body[data-weather="fog"] {
-    --weather-wash: linear-gradient(180deg, rgba(148, 163, 184, 0.12) 0%, rgba(30, 41, 59, 0.14) 100%);
-    --glass-bg: linear-gradient(135deg, rgba(203, 213, 225, 0.07), rgba(255, 255, 255, 0.02));
+    --weather-wash: radial-gradient(95% 75% at 50% 25%, rgba(148, 163, 184, 0.1) 0%, rgba(148, 163, 184, 0.035) 52%, transparent 84%);
+    --glass-bg: linear-gradient(145deg, rgba(203, 213, 225, 0.075), rgba(255, 255, 255, 0.02));
   }
 
   body[data-weather="cloudy"] {
-    --weather-wash: linear-gradient(180deg, rgba(100, 116, 139, 0.08) 0%, transparent 70%);
+    --weather-wash: radial-gradient(95% 70% at 50% 12%, rgba(100, 116, 139, 0.075) 0%, transparent 74%);
   }
 
   /* Light Theme ("Strawberry Rose" palette from reference site) */
@@ -112,44 +112,44 @@
     --glass-shadow: inset 0 1px rgba(255, 255, 255, 0.9), 0 14px 36px rgba(137, 48, 81, 0.08);
     --cursor-glow-color: rgba(237, 56, 109, 0.14);
 
-    --phase-orb-1: radial-gradient(55% 48% at 15% 12%, rgba(238, 83, 129, 0.15), transparent 64%);
-    --phase-orb-2: radial-gradient(50% 44% at 86% 18%, rgba(152, 103, 217, 0.12), transparent 64%);
-    --phase-orb-3: radial-gradient(52% 45% at 50% 96%, rgba(236, 72, 119, 0.1), transparent 66%);
-    --weather-wash: linear-gradient(180deg, transparent 0%, transparent 100%);
+    --phase-orb-1: radial-gradient(60% 52% at 15% 12%, rgba(238, 83, 129, 0.15) 0%, rgba(238, 83, 129, 0.05) 40%, transparent 72%);
+    --phase-orb-2: radial-gradient(56% 50% at 86% 18%, rgba(152, 103, 217, 0.12) 0%, rgba(152, 103, 217, 0.04) 40%, transparent 72%);
+    --phase-orb-3: radial-gradient(58% 50% at 50% 96%, rgba(236, 72, 119, 0.1) 0%, rgba(236, 72, 119, 0.03) 42%, transparent 74%);
+    --weather-wash: radial-gradient(85% 70% at 50% 0%, transparent 0%, transparent 100%);
   }
 
   body.light-theme[data-dayphase="day"] {
     --bg: #fff5f7;
-    --phase-orb-1: radial-gradient(55% 48% at 15% 12%, rgba(152, 103, 217, 0.14), transparent 64%);
-    --phase-orb-2: radial-gradient(50% 44% at 86% 18%, rgba(238, 83, 129, 0.13), transparent 64%);
+    --phase-orb-1: radial-gradient(60% 52% at 15% 12%, rgba(152, 103, 217, 0.14) 0%, rgba(152, 103, 217, 0.045) 40%, transparent 72%);
+    --phase-orb-2: radial-gradient(56% 50% at 86% 18%, rgba(238, 83, 129, 0.13) 0%, rgba(238, 83, 129, 0.04) 40%, transparent 72%);
   }
 
   body.light-theme[data-dayphase="dusk"] {
     --bg: #ffecf1;
-    --phase-orb-1: radial-gradient(55% 48% at 15% 12%, rgba(232, 50, 104, 0.2), transparent 64%);
-    --phase-orb-2: radial-gradient(50% 44% at 86% 18%, rgba(152, 103, 217, 0.18), transparent 64%);
+    --phase-orb-1: radial-gradient(60% 52% at 15% 12%, rgba(232, 50, 104, 0.2) 0%, rgba(232, 50, 104, 0.065) 40%, transparent 72%);
+    --phase-orb-2: radial-gradient(56% 50% at 86% 18%, rgba(152, 103, 217, 0.18) 0%, rgba(152, 103, 217, 0.055) 40%, transparent 72%);
   }
 
   body.light-theme[data-dayphase="night"] {
     --bg: #f9eaf0;
-    --phase-orb-1: radial-gradient(55% 48% at 15% 12%, rgba(155, 91, 214, 0.16), transparent 64%);
-    --phase-orb-2: radial-gradient(50% 44% at 86% 18%, rgba(196, 59, 120, 0.13), transparent 64%);
+    --phase-orb-1: radial-gradient(60% 52% at 15% 12%, rgba(155, 91, 214, 0.16) 0%, rgba(155, 91, 214, 0.05) 40%, transparent 72%);
+    --phase-orb-2: radial-gradient(56% 50% at 86% 18%, rgba(196, 59, 120, 0.13) 0%, rgba(196, 59, 120, 0.04) 40%, transparent 72%);
   }
 
   body.light-theme[data-weather="rain"] {
-    --weather-wash: linear-gradient(165deg, rgba(152, 103, 217, 0.12) 0%, rgba(226, 216, 240, 0.26) 100%);
+    --weather-wash: radial-gradient(95% 75% at 50% 10%, rgba(152, 103, 217, 0.14) 0%, rgba(226, 216, 240, 0.18) 50%, transparent 85%);
   }
 
   body.light-theme[data-weather="storm"] {
-    --weather-wash: linear-gradient(165deg, rgba(155, 91, 214, 0.18) 0%, rgba(232, 50, 104, 0.12) 100%);
+    --weather-wash: radial-gradient(95% 75% at 50% 10%, rgba(155, 91, 214, 0.18) 0%, rgba(232, 50, 104, 0.08) 50%, transparent 85%);
   }
 
   body.light-theme[data-weather="snow"] {
-    --weather-wash: linear-gradient(165deg, rgba(240, 246, 255, 0.55) 0%, rgba(255, 241, 244, 0.2) 100%);
+    --weather-wash: radial-gradient(95% 75% at 50% 10%, rgba(240, 246, 255, 0.5) 0%, rgba(255, 241, 244, 0.18) 52%, transparent 85%);
   }
 
   body.light-theme[data-weather="fog"] {
-    --weather-wash: linear-gradient(180deg, rgba(226, 214, 224, 0.38) 0%, transparent 100%);
+    --weather-wash: radial-gradient(95% 75% at 50% 25%, rgba(226, 214, 224, 0.34) 0%, rgba(226, 214, 224, 0.12) 52%, transparent 85%);
   }
 
   html {
@@ -239,10 +239,10 @@
   .glass-panel {
     position: relative;
     background: var(--glass-bg);
-    backdrop-filter: blur(18px) saturate(150%);
-    -webkit-backdrop-filter: blur(18px) saturate(150%);
+    backdrop-filter: blur(24px) saturate(165%);
+    -webkit-backdrop-filter: blur(24px) saturate(165%);
     border: 1px solid var(--line);
-    box-shadow: var(--glass-shadow);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.11), var(--glass-shadow);
     transition:
       border-color 220ms cubic-bezier(0.16, 1, 0.3, 1),
       background 300ms cubic-bezier(0.16, 1, 0.3, 1),
@@ -252,10 +252,10 @@
 
   .glass-panel-elevated {
     background: var(--glass-bg-elevated);
-    backdrop-filter: blur(22px) saturate(165%);
-    -webkit-backdrop-filter: blur(22px) saturate(165%);
+    backdrop-filter: blur(26px) saturate(175%);
+    -webkit-backdrop-filter: blur(26px) saturate(175%);
     border: 1px solid var(--line-strong);
-    box-shadow: var(--glass-shadow);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14), var(--glass-shadow);
   }
 
   .glass-subtle {
@@ -352,9 +352,12 @@
   }
 
   .hero-scrim {
-    background:
-      linear-gradient(105deg, rgba(5, 5, 7, 0.84) 0%, rgba(5, 5, 7, 0.46) 55%, rgba(5, 5, 7, 0.66) 100%),
-      linear-gradient(180deg, rgba(5, 5, 7, 0.18) 0%, rgba(5, 5, 7, 0.82) 100%);
+    background: radial-gradient(
+      115% 110% at 70% 25%,
+      rgba(5, 5, 7, 0.28) 0%,
+      rgba(5, 5, 7, 0.56) 52%,
+      rgba(5, 5, 7, 0.84) 100%
+    );
   }
 
   @keyframes aerOrbit {

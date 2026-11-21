@@ -858,11 +858,10 @@ export function HomeView({
 
           <div className="relative h-48 rounded-xl overflow-hidden hero-frame flex flex-col justify-between p-4 text-white">
             <div
-              className="absolute inset-0 opacity-70"
+              className="absolute inset-0 opacity-85"
               style={{
-                backgroundImage:
-                  'radial-gradient(circle at 52% 48%, rgba(255,45,104,0.28), rgba(99,91,255,0.20) 45%, transparent 72%), linear-gradient(rgba(255,255,255,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.06) 1px, transparent 1px)',
-                backgroundSize: '100% 100%, 24px 24px, 24px 24px',
+                background:
+                  'radial-gradient(circle at 52% 48%, rgba(255,45,104,0.24) 0%, rgba(99,91,255,0.16) 44%, rgba(5,5,7,0.4) 82%)',
               }}
             />
             <div className="relative z-10 flex items-center justify-between text-xs text-slate-300">
@@ -873,6 +872,7 @@ export function HomeView({
             </div>
 
             <div className="relative z-10 self-center flex items-center justify-center">
+              <div className="w-24 h-24 rounded-full border border-white/10 absolute" />
               <div className="w-16 h-16 rounded-full border border-[#635bff]/45 aer-orbit-spin absolute" />
               <span className="w-3.5 h-3.5 rounded-full bg-[#ff2d68] ring-8 ring-[#ff2d68]/20" />
             </div>
