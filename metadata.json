@@ -1,0 +1,8 @@
+{
+  "name": "AER.wave",
+  "description": "Beyond the forecast — adaptive Liquid Glass weather web application with time-of-day atmospheric backgrounds, 16-day analytics, interactive weather map, and saved cities.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
