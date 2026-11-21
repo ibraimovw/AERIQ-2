@@ -1,12 +1,14 @@
 import type {CityImageAttribution, CityLocation} from '../types/weather';
 
 const MEMORY_IMAGE_CACHE = new Map<string, CityImageAttribution | null>();
+const STORAGE_IMAGE_KEY = 'aerwave_city_panoramas_v7';
+const MAX_STORED_PANORAMAS = 40;
 
 const REJECT_PATTERNS =
-  /flag|coat_of_arms|coat-of-arms|arms|seal|emblem|logo|map|locator|location|diagram|chart|graph|metro|transit|stamp|coin|portrait|signature|icon|symbol|banner|wiki/i;
+  /flag|coat_of_arms|coat-of-arms|arms|seal|emblem|logo|locator|location_map|location-map|map|diagram|chart|graph|metro_map|stamp|coin|portrait|signature|icon|symbol|banner|ambox|shackle|statistical|art_project|painting|fresco/i;
 
 const PREFER_PATTERNS =
-  /skyline|panorama|cityscape|aerial|downtown|view|harbor|harbour|waterfront|bridge|night|sunset|tower|center|centre|square|kremlin|river/i;
+  /skyline|panorama|cityscape|aerial|downtown|view|harbor|harbour|waterfront|bridge|night|sunset|tower|center|centre|square|kremlin|cathedral|river/i;
 
 function stripHtml(input?: string): string | undefined {
   if (!input) return undefined;
@@ -14,6 +16,53 @@ function stripHtml(input?: string): string | undefined {
     .replace(/<[^>]*>/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();
+}
+
+function haversineKm(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const toRad = (d: number) => (d * Math.PI) / 180;
+  const R = 6371;
+  const dLat = toRad(lat2 - lat1);
+  const dLon = toRad(lon2 - lon1);
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+function readStoredPanorama(cacheKey: string): CityImageAttribution | null | undefined {
+  try {
+    if (typeof localStorage === 'undefined') return undefined;
+    const raw = localStorage.getItem(STORAGE_IMAGE_KEY);
+    if (!raw) return undefined;
+    const store = JSON.parse(raw) as Record<string, {data: CityImageAttribution | null; savedAt: number}>;
+    const entry = store[cacheKey];
+    if (!entry) return undefined;
+    if (Date.now() - entry.savedAt > 7 * 24 * 60 * 60 * 1000) return undefined;
+    return entry.data;
+  } catch {
+    return undefined;
+  }
+}
+
+function writeStoredPanorama(cacheKey: string, data: CityImageAttribution | null): void {
+  try {
+    if (typeof localStorage === 'undefined' || !data) return;
+    const raw = localStorage.getItem(STORAGE_IMAGE_KEY);
+    const store: Record<string, {data: CityImageAttribution | null; savedAt: number}> = raw
+      ? JSON.parse(raw)
+      : {};
+    store[cacheKey] = {data, savedAt: Date.now()};
+    const keys = Object.keys(store);
+    if (keys.length > MAX_STORED_PANORAMAS) {
+      keys
+        .sort((a, b) => store[a].savedAt - store[b].savedAt)
+        .slice(0, keys.length - MAX_STORED_PANORAMAS)
+        .forEach((k) => delete store[k]);
+    }
+    localStorage.setItem(STORAGE_IMAGE_KEY, JSON.stringify(store));
+  } catch {
+    // Ignore storage quota errors
+  }
 }
 
 interface WikiImagePage {
@@ -31,154 +80,182 @@ interface WikiImagePage {
   }>;
 }
 
+interface WikiSearchPage {
+  index?: number;
+  title?: string;
+  description?: string;
+  pageimage?: string;
+  coordinates?: Array<{lat: number; lon: number}>;
+  thumbnail?: {source: string; width: number; height: number};
+  original?: {source: string; width: number; height: number};
+}
+
+interface WikiRestSummary {
+  type?: string;
+  title?: string;
+  coordinates?: {lat: number; lon: number};
+  thumbnail?: {source: string; width: number; height: number};
+  originalimage?: {source: string; width: number; height: number};
+  content_urls?: {desktop?: {page?: string}};
+}
+
 function scoreImageCandidate(title: string, width: number, height: number, url: string): number {
   if (!/\.(jpe?g|png|webp)(\?|$)/i.test(url)) return -1;
-  if (REJECT_PATTERNS.test(title) || REJECT_PATTERNS.test(url)) return -1;
-  if (width < 850 || height < 400) return -1;
+  const filenamePart = url.split('?')[0]?.split('/').pop() ?? '';
+  if (REJECT_PATTERNS.test(title) || REJECT_PATTERNS.test(filenamePart)) return -1;
+  if (width < 700 || height < 350) return -1;
 
   const ratio = width / height;
-  if (ratio < 1.25 || ratio > 4.2) return -1;
+  if (ratio < 1.15 || ratio > 4.2) return -1;
 
-  let score = 10;
-  if (ratio >= 1.5 && ratio <= 2.6) score += 15;
+  let score = 15;
+  if (ratio >= 1.4 && ratio <= 2.6) score += 15;
   if (width >= 1200) score += 10;
-  if (PREFER_PATTERNS.test(title)) score += 25;
-  if (/montage/i.test(title)) score -= 12;
+  if (PREFER_PATTERNS.test(title) || PREFER_PATTERNS.test(filenamePart)) score += 20;
+  if (/montage/i.test(title) || /montage/i.test(filenamePart)) score -= 4;
   return score;
 }
 
-async function fetchWikipediaArticleTitle(
+async function fetchWikipediaRestSummary(
   city: CityLocation,
   langSubdomain: 'en' | 'ru',
+  candidateTitle: string,
   signal?: AbortSignal
-): Promise<string | null> {
-  const nameToQuery =
-    langSubdomain === 'en'
-      ? (city.localized?.en?.name ?? city.name)
-      : (city.localized?.ru?.name ?? city.name);
+): Promise<CityImageAttribution | null> {
+  if (!candidateTitle) return null;
+  const slug = encodeURIComponent(candidateTitle.trim().replace(/\s+/g, '_'));
+  const res = await fetch(`https://${langSubdomain}.wikipedia.org/api/rest_v1/page/summary/${slug}`, {
+    signal,
+  });
+  if (!res.ok) return null;
 
-  // Use Wikipedia GeoSearch around the city coordinates first to get the exact Wikipedia article
-  const geoUrl = new URL(`https://${langSubdomain}.wikipedia.org/w/api.php`);
-  geoUrl.searchParams.set('action', 'query');
-  geoUrl.searchParams.set('list', 'geosearch');
-  geoUrl.searchParams.set('gscoord', `${city.latitude.toFixed(4)}|${city.longitude.toFixed(4)}`);
-  geoUrl.searchParams.set('gsradius', '10000');
-  geoUrl.searchParams.set('gslimit', '8');
-  geoUrl.searchParams.set('format', 'json');
-  geoUrl.searchParams.set('origin', '*');
+  const data = (await res.json()) as WikiRestSummary;
+  if (data.type === 'disambiguation') return null;
 
-  try {
-    const geoRes = await fetch(geoUrl.toString(), {signal});
-    if (geoRes.ok) {
-      const geoJson = (await geoRes.json()) as {
-        query?: {geosearch?: Array<{title: string; dist: number}>};
-      };
-      const results = geoJson.query?.geosearch ?? [];
-      const exactMatch = results.find((r) =>
-        r.title.toLowerCase().includes(nameToQuery.toLowerCase())
-      );
-      if (exactMatch) return exactMatch.title;
-    }
-  } catch (err) {
-    if ((err as Error).name === 'AbortError') throw err;
+  if (
+    data.coordinates &&
+    haversineKm(city.latitude, city.longitude, data.coordinates.lat, data.coordinates.lon) > 150
+  ) {
+    return null;
   }
 
-  return nameToQuery;
+  const img = data.originalimage ?? data.thumbnail;
+  if (!img?.source) return null;
+
+  const score = scoreImageCandidate(data.title ?? candidateTitle, img.width, img.height, img.source);
+  if (score < 15) return null;
+
+  return {
+    url: img.source,
+    title: data.title ?? candidateTitle,
+    sourceUrl: data.content_urls?.desktop?.page,
+  };
 }
 
-async function fetchWikipediaCityImages(
+async function fetchWikipediaCitySearchImage(
   city: CityLocation,
   langSubdomain: 'en' | 'ru',
   signal?: AbortSignal
 ): Promise<CityImageAttribution | null> {
-  const articleTitle = await fetchWikipediaArticleTitle(city, langSubdomain, signal);
-  if (!articleTitle) return null;
+  const cityName =
+    langSubdomain === 'en'
+      ? (city.localized?.en?.name ?? (/^[\x20-\x7E]+$/.test(city.name) ? city.name : ''))
+      : (city.localized?.ru?.name ?? city.name);
 
-  // 1. Check the curated Wikipedia page image (lead infobox image) + all article images
-  const url = new URL(`https://${langSubdomain}.wikipedia.org/w/api.php`);
-  url.searchParams.set('action', 'query');
-  url.searchParams.set('titles', articleTitle);
-  url.searchParams.set('redirects', '1');
-  url.searchParams.set('prop', 'pageimages');
-  url.searchParams.set('piprop', 'original|thumbnail');
-  url.searchParams.set('pithumbsize', '1400');
-  url.searchParams.set('format', 'json');
-  url.searchParams.set('origin', '*');
+  if (!cityName) return null;
 
-  let leadImageFileName: string | null = null;
+  const countryName =
+    langSubdomain === 'en'
+      ? (city.localized?.en?.country ?? (/^[\x20-\x7E]+$/.test(city.country) ? city.country : ''))
+      : (city.localized?.ru?.country ?? city.country);
 
-  const pageRes = await fetch(url.toString(), {signal});
-  if (pageRes.ok) {
-    const pageJson = (await pageRes.json()) as {
-      query?: {
-        pages?: Record<
-          string,
-          {
-            title?: string;
-            pageimage?: string;
-            thumbnail?: {source: string; width: number; height: number};
-            original?: {source: string; width: number; height: number};
-          }
-        >;
-      };
-    };
-    const page = Object.values(pageJson.query?.pages ?? {})[0];
-    if (page?.pageimage) {
-      leadImageFileName = page.pageimage;
+  const searchUrl = new URL(`https://${langSubdomain}.wikipedia.org/w/api.php`);
+  searchUrl.searchParams.set('action', 'query');
+  searchUrl.searchParams.set('generator', 'search');
+  searchUrl.searchParams.set('gsrsearch', [cityName, countryName].filter(Boolean).join(' '));
+  searchUrl.searchParams.set('gsrlimit', '5');
+  searchUrl.searchParams.set('prop', 'pageimages|description|coordinates');
+  searchUrl.searchParams.set('piprop', 'name|thumbnail|original');
+  searchUrl.searchParams.set('pithumbsize', '1400');
+  searchUrl.searchParams.set('format', 'json');
+  searchUrl.searchParams.set('origin', '*');
+
+  const res = await fetch(searchUrl.toString(), {signal});
+  if (!res.ok) return null;
+
+  const json = (await res.json()) as {
+    query?: {pages?: Record<string, WikiSearchPage>};
+  };
+
+  const pages = Object.values(json.query?.pages ?? {}).sort(
+    (a, b) => (a.index ?? 99) - (b.index ?? 99)
+  );
+
+  for (const page of pages) {
+    const thumb = page.thumbnail ?? page.original;
+    if (!thumb?.source) continue;
+
+    const coords = page.coordinates?.[0];
+    if (coords && haversineKm(city.latitude, city.longitude, coords.lat, coords.lon) > 150) {
+      continue;
     }
-    const thumb = page?.thumbnail ?? page?.original;
-    if (thumb && page?.pageimage) {
-      const s = scoreImageCandidate(page.pageimage, thumb.width, thumb.height, thumb.source);
-      if (s >= 20 && !/montage/i.test(page.pageimage)) {
-        return {
-          url: thumb.source,
-          title: page.pageimage.replace(/\.[^.]+$/, '').replace(/_/g, ' '),
-          sourceUrl: `https://${langSubdomain}.wikipedia.org/wiki/File:${encodeURIComponent(page.pageimage)}`,
-        };
-      }
+
+    const fileTitle = page.pageimage ?? page.title ?? '';
+    const score = scoreImageCandidate(fileTitle, thumb.width, thumb.height, thumb.source);
+    if (score >= 15) {
+      return {
+        url: thumb.source,
+        title: (page.pageimage ?? page.title ?? cityName)
+          .replace(/\.[^.]+$/, '')
+          .replace(/_/g, ' '),
+        sourceUrl: page.title
+          ? `https://${langSubdomain}.wikipedia.org/wiki/${encodeURIComponent(page.title.replace(/ /g, '_'))}`
+          : undefined,
+      };
     }
   }
 
-  // 2. Query images embedded in that exact Wikipedia city article, scored for panoramic landscape views
-  const imagesUrl = new URL(`https://${langSubdomain}.wikipedia.org/w/api.php`);
-  imagesUrl.searchParams.set('action', 'query');
-  imagesUrl.searchParams.set('titles', articleTitle);
-  imagesUrl.searchParams.set('redirects', '1');
-  imagesUrl.searchParams.set('generator', 'images');
-  imagesUrl.searchParams.set('gimlimit', '24');
-  imagesUrl.searchParams.set('prop', 'imageinfo');
-  imagesUrl.searchParams.set('iiprop', 'url|size|extmetadata');
-  imagesUrl.searchParams.set('iiurlwidth', '1400');
-  imagesUrl.searchParams.set('format', 'json');
-  imagesUrl.searchParams.set('origin', '*');
+  return null;
+}
 
-  const imgRes = await fetch(imagesUrl.toString(), {signal});
-  if (!imgRes.ok) return null;
+async function fetchCommonsSkylineFallback(
+  cityName: string,
+  signal?: AbortSignal
+): Promise<CityImageAttribution | null> {
+  if (!cityName) return null;
+  const commonsUrl = new URL('https://commons.wikimedia.org/w/api.php');
+  commonsUrl.searchParams.set('action', 'query');
+  commonsUrl.searchParams.set('generator', 'search');
+  commonsUrl.searchParams.set(
+    'gsrsearch',
+    `"${cityName}" (skyline OR panorama OR cityscape) filetype:bitmap`
+  );
+  commonsUrl.searchParams.set('gsrnamespace', '6');
+  commonsUrl.searchParams.set('gsrlimit', '6');
+  commonsUrl.searchParams.set('prop', 'imageinfo');
+  commonsUrl.searchParams.set('iiprop', 'url|size|extmetadata');
+  commonsUrl.searchParams.set('iiurlwidth', '1400');
+  commonsUrl.searchParams.set('format', 'json');
+  commonsUrl.searchParams.set('origin', '*');
 
-  const imgJson = (await imgRes.json()) as {
-    query?: {pages?: Record<string, WikiImagePage>};
-  };
-  const pages = Object.values(imgJson.query?.pages ?? {});
+  const res = await fetch(commonsUrl.toString(), {signal});
+  if (!res.ok) return null;
 
+  const json = (await res.json()) as {query?: {pages?: Record<string, WikiImagePage>}};
+  const pages = Object.values(json.query?.pages ?? {});
   let best: {score: number; item: CityImageAttribution} | null = null;
+
   for (const p of pages) {
     const info = p.imageinfo?.[0];
-    const title = p.title ?? '';
     if (!info) continue;
     const imgUrl = info.thumburl ?? info.url ?? '';
-    const w = info.width ?? 0;
-    const h = info.height ?? 0;
-    let score = scoreImageCandidate(title, w, h, imgUrl);
-    if (score < 0) continue;
-    if (leadImageFileName && title.includes(leadImageFileName)) {
-      score += 8;
-    }
-    if (!best || score > best.score) {
+    const score = scoreImageCandidate(p.title ?? '', info.width ?? 0, info.height ?? 0, imgUrl);
+    if (score >= 15 && (!best || score > best.score)) {
       best = {
         score,
         item: {
           url: imgUrl,
-          title: title.replace(/^File:/i, '').replace(/\.[^.]+$/, ''),
+          title: (p.title ?? '').replace(/^File:/i, '').replace(/\.[^.]+$/, ''),
           artist: stripHtml(info.extmetadata?.Artist?.value),
           license: stripHtml(info.extmetadata?.LicenseShortName?.value),
           sourceUrl: info.descriptionurl,
@@ -198,64 +275,62 @@ export async function fetchCityPanorama(
   if (MEMORY_IMAGE_CACHE.has(cacheKey)) {
     return MEMORY_IMAGE_CACHE.get(cacheKey) ?? null;
   }
+  const stored = readStoredPanorama(cacheKey);
+  if (stored !== undefined) {
+    MEMORY_IMAGE_CACHE.set(cacheKey, stored);
+    return stored;
+  }
 
   try {
-    // 1. Primary: curated lead/panorama image from the city's English Wikipedia article
-    const enResult = await fetchWikipediaCityImages(city, 'en', signal);
-    if (enResult) {
-      MEMORY_IMAGE_CACHE.set(cacheKey, enResult);
-      return enResult;
+    const enName = city.localized?.en?.name ?? (/^[\x20-\x7E]+$/.test(city.name) ? city.name : '');
+    const ruName = city.localized?.ru?.name ?? city.name;
+
+    // 1. Fast CDN-cached Wikipedia REST summary lookup (exact city & disambiguation-safe)
+    const restCandidates: Array<{lang: 'en' | 'ru'; title: string}> = [];
+    if (enName) {
+      restCandidates.push({lang: 'en', title: enName});
+      if (!/\bcity\b/i.test(enName)) {
+        restCandidates.push({lang: 'en', title: `${enName} City`});
+      }
+    }
+    if (ruName) {
+      restCandidates.push({lang: 'ru', title: ruName});
     }
 
-    // 2. Secondary: Russian Wikipedia article for regional/CIS cities
-    const ruResult = await fetchWikipediaCityImages(city, 'ru', signal);
-    if (ruResult) {
-      MEMORY_IMAGE_CACHE.set(cacheKey, ruResult);
-      return ruResult;
-    }
-
-    // 3. Tertiary: Wikimedia Commons strictly requiring skyline/panorama/cityscape in filename
-    const enName = city.localized?.en?.name ?? city.name;
-    const commonsUrl = new URL('https://commons.wikimedia.org/w/api.php');
-    commonsUrl.searchParams.set('action', 'query');
-    commonsUrl.searchParams.set('generator', 'search');
-    commonsUrl.searchParams.set(
-      'gsrsearch',
-      `intitle:"${enName}" (skyline OR panorama OR cityscape) filetype:bitmap`
-    );
-    commonsUrl.searchParams.set('gsrnamespace', '6');
-    commonsUrl.searchParams.set('gsrlimit', '10');
-    commonsUrl.searchParams.set('prop', 'imageinfo');
-    commonsUrl.searchParams.set('iiprop', 'url|size|extmetadata');
-    commonsUrl.searchParams.set('iiurlwidth', '1400');
-    commonsUrl.searchParams.set('format', 'json');
-    commonsUrl.searchParams.set('origin', '*');
-
-    const res = await fetch(commonsUrl.toString(), {signal});
-    if (res.ok) {
-      const json = (await res.json()) as {query?: {pages?: Record<string, WikiImagePage>}};
-      const pages = Object.values(json.query?.pages ?? {});
-      for (const p of pages) {
-        const info = p.imageinfo?.[0];
-        if (!info) continue;
-        const imgUrl = info.thumburl ?? info.url ?? '';
-        const score = scoreImageCandidate(p.title ?? '', info.width ?? 0, info.height ?? 0, imgUrl);
-        if (score >= 15) {
-          const result: CityImageAttribution = {
-            url: imgUrl,
-            title: (p.title ?? '').replace(/^File:/i, '').replace(/\.[^.]+$/, ''),
-            artist: stripHtml(info.extmetadata?.Artist?.value),
-            license: stripHtml(info.extmetadata?.LicenseShortName?.value),
-            sourceUrl: info.descriptionurl,
-          };
-          MEMORY_IMAGE_CACHE.set(cacheKey, result);
-          return result;
-        }
+    for (const candidate of restCandidates) {
+      const restResult = await fetchWikipediaRestSummary(
+        city,
+        candidate.lang,
+        candidate.title,
+        signal
+      );
+      if (restResult) {
+        MEMORY_IMAGE_CACHE.set(cacheKey, restResult);
+        writeStoredPanorama(cacheKey, restResult);
+        return restResult;
       }
     }
 
-    MEMORY_IMAGE_CACHE.set(cacheKey, null);
-    return null;
+    // 2. Wikipedia search API fallback for smaller towns or compound names
+    const enSearch = await fetchWikipediaCitySearchImage(city, 'en', signal);
+    if (enSearch) {
+      MEMORY_IMAGE_CACHE.set(cacheKey, enSearch);
+      writeStoredPanorama(cacheKey, enSearch);
+      return enSearch;
+    }
+
+    const ruSearch = await fetchWikipediaCitySearchImage(city, 'ru', signal);
+    if (ruSearch) {
+      MEMORY_IMAGE_CACHE.set(cacheKey, ruSearch);
+      writeStoredPanorama(cacheKey, ruSearch);
+      return ruSearch;
+    }
+
+    // 3. Wikimedia Commons skyline fallback
+    const commonsResult = await fetchCommonsSkylineFallback(enName || ruName, signal);
+    MEMORY_IMAGE_CACHE.set(cacheKey, commonsResult);
+    writeStoredPanorama(cacheKey, commonsResult);
+    return commonsResult;
   } catch (err) {
     if ((err as Error).name === 'AbortError') {
       throw err;

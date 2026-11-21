@@ -29,7 +29,7 @@ export function Sidebar({
 
   return (
     <aside
-      className={`hidden md:flex flex-col fixed left-0 top-0 bottom-0 z-40 glass-panel border-y-0 border-l-0 border-r border-[var(--line)] rounded-none transition-[width] duration-200 ease-out ${
+      className={`hidden md:flex flex-col fixed left-0 top-0 bottom-0 z-40 select-none glass-panel border-y-0 border-l-0 border-r border-[var(--line)] rounded-none transition-[width] duration-200 ease-out ${
         collapsed ? 'w-[72px] px-2.5 py-4' : 'w-[244px] px-3.5 py-4'
       }`}
     >
